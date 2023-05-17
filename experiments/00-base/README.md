@@ -8,3 +8,8 @@ To be able to create accurate comparisons of different approaches, the whole or
 parts of [App.tsx](./App.tsx) can be reimplemented in YAML in separate
 experiments. The idea is that with both experiments working towards the same
 base, it will be easier to contrast and compare them.
+
+The following diagram represents all of the elements in the app and most of the
+props, except the `Route` components at root level:
+
+![Diagram of the app](./diagram.drawio.svg)
