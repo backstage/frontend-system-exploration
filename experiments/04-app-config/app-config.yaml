@@ -1,0 +1,290 @@
+app:
+  title: Backstage Example App
+  baseUrl: http://localhost:3000
+
+  # not backend - might live under backend.features instead
+  features:
+    # Registers all APIs and Pages, all the defaults
+    - '@backstage/plugin-catalog' # covers catalog FE and BE?
+    - '@backstage/plugin-scaffolder-react' # Make extensions available to the
+    - '@backstage/plugin-scaffolder'              # smth. like { extension: Extension<ExtensionPointRef, Declarative> }
+       extensions:
+        - '@backstage/plugin-techdocs-module-addons-contrib#LowerCaseValuePickerFieldExtension'
+        - '@backstage/plugin-techdocs-module-addons-contrib#DelayingComponentFieldExtension'
+    - '@backstage/plugin-home'
+    - '@internal/ma-magic-plugin'
+    - '@backstage/plugin-catalog-backend-module-github#OrgFeatures' # what is exp'd
+    
+    
+    # Exposes a TechdocsAddon extension point
+    - import: '@backstage/plugin-techdocs'
+      # # Unspecified means all addons will be added automagically
+      # extensions: 
+      #   - ExpandableNavigation
+      #   - id: TextSize
+      #     config:
+      #       compact: false
+
+    - import: '@backstage/plugin-techdocs-module-addons-contrib'
+      extensions: 
+        - ExpandableNavigation
+        - id: TextSize
+          config:
+            compact: false
+
+  # import { useExtensions } from '@backstage/whatev';
+  # import { fieldExtensionPointRef } from '@backstage/scaff';
+
+  # const Foo = () => {
+  #   const extensions = useExtensions(fieldExtensionPointRef);
+
+  #   form.addFieldExtensions(extensions);
+  # }
+  
+  
+  
+  # import { loadExtensionFactories }  from 'my-plugin';
+
+
+  # Routes registered automatically but can be overridden.
+  routes:
+    - route: home.index
+      path: /startpage # changes from /home to /startpage 
+
+  # This is the root elements of the JSX element tree.
+  # This is likely not something that most integrators configure instead rely on the default root elements from a package.
+  rootElements:
+    - '@backstage/app-defaults#defaultRoot'
+    # - DefaultErrorReporter
+    # - DefaultSidebar
+    # - DeclarativeRouter
+
+  # Sidebar contains "pinned items", shown in the sidebar itself,
+  # and "drawer items", shown in a clickable flyout.
+  '@backstage/core-components#Sidebar':
+    # A known set of core shortcuts (catalog, scaffolder, search etc)
+    # are shown in the top-level sidebar by default
+    pinCoreItems: true
+    # Additional shortcuts can be added to the top-level sidebar
+    # by including the corresponding extension IDs in this array.
+    pinnedItems: 
+      - soundcheck
+    # Other sidebar items that are registered are
+    # shown in the flyout by default
+    autoAddDrawerItems: true
+    
+    
+    # items:
+    #   # - '@backstage/plugin-search#SearchSidebarItem' ?
+    #   - title: Home
+    #     icon: house
+    #     route: home.index
+    #   - id: catalog.entityPage
+    #   - title: I'm feeling lucky
+    #     icon: globe
+    #     to: https://google.com
+    #   - id: sidebar.divider
+    #   - title: Settings
+    #     groupId: settings
+      
+    # groups:
+    #   items:
+    #     - title: Settings
+    #       id: settings
+    #       items:
+    #         - id: settings.profile
+
+  '@backstage/core-components#Sidebar2':
+    children:
+    - component: '@backstage/plugin-search#SearchSidebarItem'
+    - component: '@backstage/plugin-search#SidebarGroup'
+      props:
+        title: Derp
+      children:
+      - component: '@backstage/plugin-search#SidebarItem'
+        props:
+          title: Home
+          icon: house
+          route: home.index
+      - component: '@backstage/plugin-search#SidebarItem'
+        props:
+          title: Catalog
+          icon: catalog
+          route: catalog.entityPage
+    - component: '@backstage/plugin-sidebar#SidebarDivider'
+    - component: '@backstage/plugin-sidebar#SidebarToolbox'
+    - component: '@backstage/plugin-sidebar#SidebarDivider'
+    - component: '@backstage/plugin-sidebar#SidebarItem'
+      props:
+        title: Settings
+        icon: wrench
+        route: boop.userSettings
+      
+    groups:
+      items:
+        - title: Settings
+          id: settings
+          items:
+            - id: settings.profile
+
+
+  flat:
+    EntityPage:
+      - kind: Component
+        layout: EntityGrid
+
+    componentAboutCard:
+      component: AboutCard
+      selectors:
+        - kind: Component
+
+
+  nested:
+    component: EntityPage
+    children:
+      - component: EntitySwitch
+        props:
+          kind: Component
+        children:
+          - parentProps:
+              selector:
+                kind: Component
+            component: EntityGrid
+            props: {}
+            children:
+              - component: AboutCard
+                props:
+                  showTechDocs: true
+                  #  -------------------------> to the margin, and beyond!
+
+  slots:
+    - slot: catalog.entityPage.layout
+    - slot: catalog.entityPage.contextMenu
+      mapping:
+        - condition: { kind: Component }
+          contents:
+            - component: InspectEntity
+              props: {}
+            - DeleteEntity
+    - slot: catalog.entityPage.titlePageTools
+      mapping:
+        - condition: { kind: Component }
+          contents:
+            - OwnerPageTool
+            - LifecyclePageTool
+
+
+  # - All Backstage packages are discovered (somehow)
+  # - Each package has a well known import imported and invoked to register
+  #   extensions and extension points (both by id)
+  #   - From that point on, no need to talk in terms of package names
+  # - Config + defaults are used to figure out which extensions to instantiate
+  #   and connect to their extension points (extensions may be instantiated
+  #   multiple times).
+
+  extensions:
+      # extension id has already been registered in registration phase,
+      # connected to specific extension point (presumably a catalog tabs
+      # extension point).
+    - id: catalog.entityPage/overviewRoute
+      props:
+        layout: grid
+    - id: catalog.entityPage.overviewPage/aboutCard
+      toBePutAtTheExtensionPoint:
+        id: 'catalog.entityPage.overviewPage/content'
+        condition: { kind: Component }
+        width: 2
+      component: '@backstage/plugin-catalog#AboutCard'
+      props: {}
+    - id: catalog.entityPage.cicd
+      toBePutAtTheExtensionPoint:
+        id: catalog.entityPage/routes
+        title: 'CI/CD'
+      x: catalog.entityPage.cicd/githubActions
+      component: '@backstage/plugin-github-actions#GithubActionsEntityContent'
+    - id: catalog.entityPage.overviewPage.aboutCard2
+      toBePutAtTheExtensionPoint:
+        id: 'catalog.entityPage.overviewPage/content'
+        condition: { kind: Resource }
+        width: 3
+      component: '@backstage/plugin-catalog#AboutCard'
+      props: {}
+
+  '@backstage/plugin-catalog#DefaultOverviewPage':
+    layouts:
+      - condition: { kind: Component }
+        layout: '@backstage/plugin-catalog#SomeLayout'
+
+  # https://demo.backstage.io/catalog/default/component/playback-order
+  '@backstage/plugin-catalog#EntityPage':
+    tabs:
+      - condition: { kind: ['Component', 'System'] }
+        title: Overview
+        layout: X
+        overviewPageId: 
+        sections: 
+          - title: About
+            cards:
+              - PagerDutyCard
+              - id: LightHouseCard
+                condition: { type: ['website'] }
+          - title: Alerts
+            cards: ...
+      - condition: { kind: API }
+        title: Overview
+        layout: blah#ThreeColumns
+
+  '@backstage/plugin-catalog':
+    extensions:
+      # Extension point identifier
+      'catalog.overview-page.cards':
+        - id: '@backstage/plugin-pagerduty#PagerDutyCard'
+          # Config specific to the extension
+          config: 
+            compact: true
+
+    pages:
+      - kind: component
+        type:
+          - id: website
+            pages:
+              - name: Overview
+                path: overview
+                cards:
+                  - '@backstage/plugin-catalog#AboutCard'
+                  - '@backstage/plugin-pagerduty#PagerDutyCard'
+                  - '@backstage/plugin-lighthouse#LightHouseReportCard'
+              - name: CI/CD
+                path: cicd
+                cards:
+                  - '@backstage/plugin-kubernetes#DeploymentOverview'
+          - id: service
+            pages:
+              - name: Overview
+                path: overview
+                cards:
+                  - '@backstage/plugin-catalog#AboutCard'
+                  - '@backstage/plugin-pagerduty#PagerDutyCard'
+                  - '@backstage/plugin-lighthouse#LightHouseReportCard'
+              - name: CI/CD
+                path: cicd
+                cards:
+                  - '@backstage/plugin-kubernetes#DeploymentOverview'
+        defaultPage:
+          name: Overview
+          path: overview
+          cards:
+            - '@backstage/plugin-catalog#AboutCard'
+      - kind: api
+        pages:
+          - name: Overview
+            path: overview
+            cards:
+              - '@backstage/plugin-catalog#AboutCard'
+              - '@backstage/plugin-swagger-ui#ApiDefinitionCard'
+      - kind: user
+        pages:
+          - name: Overview
+            path: overview
+            cards:
+              - '@internal/company#OrgStructureCard'
