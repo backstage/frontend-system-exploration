@@ -36,9 +36,11 @@ export const catalogPlugin = createPlugin({
   pluginId: "catalog",
   extensions: [
     createExtensionFactory({
+      // combined with extension point: core.sidebar/catalog
+      id: 'catalog',
       extensionPoint: sidebarItemExtensionPointRef,
-      factory: (_config, deps) => {
-        if (!deps.rbacWhatever.isRbacAdmin()) {
+      factory: async (_config, deps) => {
+        if (!(await deps.rbacWhatever.isRbacAdmin())) {
           return null;
         }
 

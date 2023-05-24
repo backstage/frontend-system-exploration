@@ -72,6 +72,13 @@ app:
     # Other sidebar items that are registered are
     # shown in the flyout by default
     autoAddDrawerItems: true
+    items:
+      - id: deployments
+        config: 
+          if: '!core.isFriday && custom.isDeploymentAdmin'
+      - id: newProject
+        config:
+          if: 'core.featureFlag.alphaUser'
     
     
     # items:
