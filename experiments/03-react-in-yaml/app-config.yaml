@@ -1,0 +1,583 @@
+
+
+app:
+  components:
+    SignInPage:
+      $component: '@backstage/core-components#SignInPage'
+      provider:
+        id: google
+        title: Google
+        message: Sign In using Google
+        apiRef: googleAuthApiRef # ???
+      title: 'Select a sign-in method'
+      align: center
+  routes:
+    catalog:
+      createComponent: scaffolder/root
+    scaffolder:
+      registerComponent: catalog-import/importPage
+  root:
+    - component: '@backstage/core-components#AlertDisplay'
+      transientTimeoutMs: 2500
+    - component: '@backstage/core-components#OAuthRequestDialog'
+    - component: '@backstage/core-app-api#AppRouter'
+      children:
+        - component: '@backstage/core-components#SidebarPage'
+          children:
+            - component: '@backstage/core-components#Sidebar'
+              children:
+
+              - component: '@backstage/core-components#SidebarLogo'
+              - component: '@backstage/core-components#SidebarGroup'
+                label: Search
+                icon: search
+                to: /search
+                children:
+                - component: '@backstage/plugin-search#SidebarSearchModal'
+                  children:
+                  - component: '@backstage/plugin-search#SearchModal'
+              - component: '@backstage/core-components#SidebarDivider'
+              - component: '@backstage/core-components#SidebarGroup'
+                label: Menu
+                icon: menu
+                children:
+                - component: '@backstage/core-components#SidebarItem'
+                  text: Home
+                  icon: home
+                  to: /catalog
+                - component: '@backstage/core-components#SidebarItem'
+                  text: Create...
+                  icon: create
+                  to: /create
+                - component: '@backstage/core-components#SidebarDivider'
+                - component: '@backstage/core-components#SidebarScrollWrapper'
+                  children:
+                  - component: '@backstage/core-components#SidebarItem'
+                    text: Tech Radar
+                    icon: map
+                    to: /tech-radar
+                  - component: '@backstage/core-components#SidebarItem'
+                    text: GraphiQL
+                    icon: graphiql
+                    to: /graphiql
+                - component: '@backstage/core-components#SidebarDivider'
+                - component: '@backstage/plugin-shortcuts#Shortcuts'
+                  allowExternalLinks: true
+              - component: '@backstage/core-components#SidebarSpace'
+              - component: '@backstage/core-components#SidebarDivider'
+              - component: '@backstage/core-components#SidebarGroup'
+                label: Settings
+                icon: avatar
+                to: /settings
+                children:
+                - component: '@backstage/plugin-user-settings#SidebarSettings'
+            - component: '@backstage/core-components#FlatRoutes'
+              children:
+                - component: 'react-router#Route'
+                  path: /
+                  element:
+                    $component: 'react-router#Navigate'
+                    to: 'catalog'
+                - component: 'react-router#Route'
+                  path: /catalog
+                  element:
+                    $component: '@backstage/plugin-catalog#CatalogIndexPage'
+                - component: 'react-router#Route'
+                  path: /catalog/:namespace/:kind/:name
+                  element:
+                    $component: '@backstage/plugin-catalog#CatalogEntityPage'
+                  children:
+                  - component: '@backstage/plugin-catalog#EntitySwitch'
+                    children:
+                    - component: '@backstage/plugin-catalog#EntitySwitch.Case'
+                      if:
+                        isKind: component
+                      children:
+                      - component: '@backstage/plugin-catalog#EntitySwitch.Case'
+                        if:
+                          isComponentType: service
+                        children:
+                        - component: '@backstage/plugin-catalog#EntityLayout'
+                          children:
+                          - component: '@backstage/plugin-catalog#EntityLayout.Route'
+                            title: Overview
+                            path: /
+                            children:
+                            # {overviewContent}
+                            - component: '@material-ui/core#Grid'
+                              container: true
+                              spacing: 3
+                              alignItems: stretch
+                              children:
+                              # {entityWarningContent}
+                              - component: '@backstage/plugin-catalog#EntitySwitch'
+                                children:
+                                - component: '@backstage/plugin-catalog#EntitySwitch.Case'
+                                  if:
+                                    isOrphan: true
+                                  children:
+                                  - component: '@material-ui/core#Grid'
+                                    item: true
+                                    xs: 12
+                                    children:
+                                    - component: '@backstage/plugin-catalog#EntityOrphanWarning'
+                              - component: '@backstage/plugin-catalog#EntitySwitch'
+                                children:
+                                - component: '@backstage/plugin-catalog#EntitySwitch.Case'
+                                  if:
+                                    hasCatalogProcessingErrors: true
+                                  children:
+                                  - component: '@material-ui/core#Grid'
+                                    item: true
+                                    xs: 12
+                                    children:
+                                    - component: '@backstage/plugin-catalog#EntityProcessingErrorsPanel'
+                              # {/entityWarningContent}
+                              - component: '@material-ui/core#Grid'
+                                item: true
+                                md: 6
+                                xs: 12
+                                children:
+                                - component: '@backstage/plugin-catalog#EntityAboutCard'
+                                  variant: gridItem
+                              - component: '@material-ui/core#Grid'
+                                item: true
+                                md: 6
+                                xs: 12
+                                children:
+                                - component: '@backstage/plugin-catalog-graph#EntityCatalogGraphCard'
+                                  variant: gridItem
+                                  height: 400
+                              - component: '@backstage/plugin-catalog#EntitySwitch'
+                                children:
+                                - component: '@backstage/plugin-catalog#EntitySwitch.Case'
+                                  if:
+                                    isPagerDutyAvailable: true # ???
+                                  children:
+                                  - component: '@material-ui/core#Grid'
+                                    item: true
+                                    md: 6
+                                    children:
+                                    - component: '@backstage/plugin-pager-duty#EntityPagerDutyCard'
+                              - component: '@material-ui/core#Grid'
+                                item: true
+                                md: 4
+                                xs: 12
+                                children:
+                                - component: '@backstage/plugin-catalog#EntityLinksCard'
+                                  variant: gridItem
+                              - component: '@backstage/plugin-catalog#EntitySwitch'
+                                children:
+                                - component: '@backstage/plugin-catalog#EntitySwitch.Case'
+                                  if:
+                                    hasLabels: true
+                                  children:
+                                  - component: '@material-ui/core#Grid'
+                                    item: true
+                                    md: 4
+                                    xs: 12
+                                    children:
+                                    - component: '@backstage/plugin-catalog#EntityLabelsCard'
+                              - component: '@backstage/plugin-catalog#EntitySwitch'
+                                children:
+                                - component: '@backstage/plugin-catalog#EntitySwitch.Case'
+                                  if:
+                                    isGithubInsightsAvailable: true # ???
+                                  children:
+                                  - component: '@material-ui/core#Grid'
+                                    item: true
+                                    md: 6
+                                    children:
+                                    - component: '@roadiehq/backstage-plugin-github-insights#EntityGithubInsightsLanguagesCard'
+                                    - component: '@roadiehq/backstage-plugin-github-insights#EntityGithubInsightsReleasesCard'
+                                  - component: '@material-ui/core#Grid'
+                                    item: true
+                                    md: 6
+                                    children:
+                                    - component: '@roadiehq/backstage-plugin-github-insights#EntityGithubInsightsReadmeCard'
+                                      maxHeight: 350
+                              - component: '@material-ui/core#Grid'
+                                item: true
+                                md: 4
+                                xs: 12
+                                children:
+                                - component: '@backstage/plugin-catalog#EntityHasSubcomponentsCard'
+                                  variant: gridItem
+                            # {/overviewContent}
+                          - component: '@backstage/plugin-catalog#EntityLayout.Route'
+                            title: Dependencies
+                            path: /dependencies
+                            children:
+                            - component: '@material-ui/core#Grid'
+                              container: true
+                              spacing: 3
+                              alignItems: stretch
+                              children:
+                              - component: '@material-ui/core#Grid'
+                                item: true
+                                xs: 12
+                                md: 6
+                                children:
+                                - component: '@backstage/plugin-catalog-react#EntityDependsOnComponentsCard'
+                                  varian: gridItem
+                          - component: '@backstage/plugin-catalog#EntityLayout.Route'
+                            title: Code Insights
+                            path: /code-insights
+                            children:
+                            - component: '@roadiehq/backstage-plugin-github-insights#EntityGithubInsightsContent'
+                          - component: '@backstage/plugin-catalog#EntityLayout.Route'
+                            title: TODOs
+                            path: /todos
+                            children:
+                            - component: '@backstage/plugin-todo#EntityTodoContent'
+                          - component: '@backstage/plugin-catalog#EntityLayout.Route'
+                            title: Feedback
+                            path: /feedback
+                            children:
+                            - component: '@backstage/plugin-entity-feedback#EntityFeedbackResponseContent'
+                      - component: '@backstage/plugin-catalog#EntitySwitch.Case'
+                        children:
+                        - component: '@backstage/plugin-catalog#EntityLayout'
+                          children:
+                          - component: '@backstage/plugin-catalog#EntityLayout.Route'
+                            title: Overview
+                            path: /
+                            children:
+                            # {overviewContent}
+                            - component: '@material-ui/core#Grid'
+                              container: true
+                              spacing: 3
+                              alignItems: stretch
+                              children:
+                              # {entityWarningContent}
+                              - component: '@backstage/plugin-catalog#EntitySwitch'
+                                children:
+                                - component: '@backstage/plugin-catalog#EntitySwitch.Case'
+                                  if:
+                                    isOrphan: true
+                                  children:
+                                  - component: '@material-ui/core#Grid'
+                                    item: true
+                                    xs: 12
+                                    children:
+                                    - component: '@backstage/plugin-catalog#EntityOrphanWarning'
+                              - component: '@backstage/plugin-catalog#EntitySwitch'
+                                children:
+                                - component: '@backstage/plugin-catalog#EntitySwitch.Case'
+                                  if:
+                                    hasCatalogProcessingErrors: true
+                                  children:
+                                  - component: '@material-ui/core#Grid'
+                                    item: true
+                                    xs: 12
+                                    children:
+                                    - component: '@backstage/plugin-catalog#EntityProcessingErrorsPanel'
+                              # {/entityWarningContent}
+                              - component: '@material-ui/core#Grid'
+                                item: true
+                                md: 6
+                                xs: 12
+                                children:
+                                - component: '@backstage/plugin-catalog#EntityAboutCard'
+                                  variant: gridItem
+                              - component: '@material-ui/core#Grid'
+                                item: true
+                                md: 6
+                                xs: 12
+                                children:
+                                - component: '@backstage/plugin-catalog-graph#EntityCatalogGraphCard'
+                                  variant: gridItem
+                                  height: 400
+                              - component: '@backstage/plugin-catalog#EntitySwitch'
+                                children:
+                                - component: '@backstage/plugin-catalog#EntitySwitch.Case'
+                                  if:
+                                    isPagerDutyAvailable: true # ???
+                                  children:
+                                  - component: '@material-ui/core#Grid'
+                                    item: true
+                                    md: 6
+                                    children:
+                                    - component: '@backstage/plugin-pager-duty#EntityPagerDutyCard'
+                              - component: '@material-ui/core#Grid'
+                                item: true
+                                md: 4
+                                xs: 12
+                                children:
+                                - component: '@backstage/plugin-catalog#EntityLinksCard'
+                                  variant: gridItem
+                              - component: '@backstage/plugin-catalog#EntitySwitch'
+                                children:
+                                - component: '@backstage/plugin-catalog#EntitySwitch.Case'
+                                  if:
+                                    hasLabels: true
+                                  children:
+                                  - component: '@material-ui/core#Grid'
+                                    item: true
+                                    md: 4
+                                    xs: 12
+                                    children:
+                                    - component: '@backstage/plugin-catalog#EntityLabelsCard'
+                              - component: '@backstage/plugin-catalog#EntitySwitch'
+                                children:
+                                - component: '@backstage/plugin-catalog#EntitySwitch.Case'
+                                  if:
+                                    isGithubInsightsAvailable: true # ???
+                                  children:
+                                  - component: '@material-ui/core#Grid'
+                                    item: true
+                                    md: 6
+                                    children:
+                                    - component: '@roadiehq/backstage-plugin-github-insights#EntityGithubInsightsLanguagesCard'
+                                    - component: '@roadiehq/backstage-plugin-github-insights#EntityGithubInsightsReleasesCard'
+                                  - component: '@material-ui/core#Grid'
+                                    item: true
+                                    md: 6
+                                    children:
+                                    - component: '@roadiehq/backstage-plugin-github-insights#EntityGithubInsightsReadmeCard'
+                                      maxHeight: 350
+                              - component: '@material-ui/core#Grid'
+                                item: true
+                                md: 4
+                                xs: 12
+                                children:
+                                - component: '@backstage/plugin-catalog#EntityHasSubcomponentsCard'
+                                  variant: gridItem
+                            # {/overviewContent}
+                          - component: '@backstage/plugin-catalog#EntityLayout.Route'
+                            title: TODOs
+                            path: /todos
+                            children:
+                            - component: '@backstage/plugin-todo#EntityTodoContent'
+                          - component: '@backstage/plugin-catalog#EntityLayout.Route'
+                            title: Feedback
+                            path: /feedback
+                            children:
+                            - component: '@backstage/plugin-entity-feedback#EntityFeedbackResponseContent'
+                    - component: '@backstage/plugin-catalog#EntitySwitch.Case'
+                      if:
+                        isKind: user
+                      children:
+                      - component: '@backstage/plugin-catalog#EntityLayout.Route'
+                        title: Overview
+                        path: /
+                        children:
+                        - component: '@material-ui/core#Grid'
+                          container: true
+                          spacing: 3
+                          children:
+                          # {entityWarningContent}
+                          - component: '@backstage/plugin-catalog#EntitySwitch'
+                            children:
+                            - component: '@backstage/plugin-catalog#EntitySwitch.Case'
+                              if:
+                                isOrphan: true
+                              children:
+                              - component: '@material-ui/core#Grid'
+                                item: true
+                                xs: 12
+                                children:
+                                - component: '@backstage/plugin-catalog#EntityOrphanWarning'
+                          - component: '@backstage/plugin-catalog#EntitySwitch'
+                            children:
+                            - component: '@backstage/plugin-catalog#EntitySwitch.Case'
+                              if:
+                                hasCatalogProcessingErrors: true
+                              children:
+                              - component: '@material-ui/core#Grid'
+                                item: true
+                                xs: 12
+                                children:
+                                - component: '@backstage/plugin-catalog#EntityProcessingErrorsPanel'
+                          # {/entityWarningContent}
+                          - component: '@material-ui/core#Grid'
+                            item: true
+                            xs: 12
+                            md: 6
+                            children:
+                            - component: '@backstage/plugin-org#EntityUserProfileCard'
+                              varian: gridItem
+                          - component: '@material-ui/core#Grid'
+                            item: true
+                            xs: 12
+                            md: 6
+                            children:
+                            - component: '@backstage/plugin-org#EntityOwnershipCard'
+                              varian: gridItem
+                                # entityFilterKind: customEntityFilterKind
+                          - component: '@material-ui/core#Grid'
+                            item: true
+                            xs: 12
+                            children:
+                            - component: '@backstage/plugin-entity-ratings#EntityLikeDislikeRatingsCard'
+                    - component: '@backstage/plugin-catalog#EntitySwitch.Case'
+                      if:
+                        isKind: user
+                      children:
+                      - component: '@backstage/plugin-catalog#EntityLayout.Route'
+                        title: Overview
+                        path: /
+                        children:
+                        - component: '@material-ui/core#Grid'
+                          container: true
+                          spacing: 3
+                          children:
+                          # {overviewContent}
+                          - component: '@material-ui/core#Grid'
+                            container: true
+                            spacing: 3
+                            alignItems: stretch
+                            children:
+                            # {entityWarningContent}
+                            - component: '@backstage/plugin-catalog#EntitySwitch'
+                              children:
+                              - component: '@backstage/plugin-catalog#EntitySwitch.Case'
+                                if:
+                                  isOrphan: true
+                                children:
+                                - component: '@material-ui/core#Grid'
+                                  item: true
+                                  xs: 12
+                                  children:
+                                  - component: '@backstage/plugin-catalog#EntityOrphanWarning'
+                            - component: '@backstage/plugin-catalog#EntitySwitch'
+                              children:
+                              - component: '@backstage/plugin-catalog#EntitySwitch.Case'
+                                if:
+                                  hasCatalogProcessingErrors: true
+                                children:
+                                - component: '@material-ui/core#Grid'
+                                  item: true
+                                  xs: 12
+                                  children:
+                                  - component: '@backstage/plugin-catalog#EntityProcessingErrorsPanel'
+                            # {/entityWarningContent}
+                            - component: '@material-ui/core#Grid'
+                              item: true
+                              md: 6
+                              xs: 12
+                              children:
+                              - component: '@backstage/plugin-catalog#EntityAboutCard'
+                                variant: gridItem
+                            - component: '@material-ui/core#Grid'
+                              item: true
+                              md: 6
+                              xs: 12
+                              children:
+                              - component: '@backstage/plugin-catalog-graph#EntityCatalogGraphCard'
+                                variant: gridItem
+                                height: 400
+                            - component: '@backstage/plugin-catalog#EntitySwitch'
+                              children:
+                              - component: '@backstage/plugin-catalog#EntitySwitch.Case'
+                                if:
+                                  isPagerDutyAvailable: true # ???
+                                children:
+                                - component: '@material-ui/core#Grid'
+                                  item: true
+                                  md: 6
+                                  children:
+                                  - component: '@backstage/plugin-pager-duty#EntityPagerDutyCard'
+                            - component: '@material-ui/core#Grid'
+                              item: true
+                              md: 4
+                              xs: 12
+                              children:
+                              - component: '@backstage/plugin-catalog#EntityLinksCard'
+                                variant: gridItem
+                            - component: '@backstage/plugin-catalog#EntitySwitch'
+                              children:
+                              - component: '@backstage/plugin-catalog#EntitySwitch.Case'
+                                if:
+                                  hasLabels: true
+                                children:
+                                - component: '@material-ui/core#Grid'
+                                  item: true
+                                  md: 4
+                                  xs: 12
+                                  children:
+                                  - component: '@backstage/plugin-catalog#EntityLabelsCard'
+                            - component: '@backstage/plugin-catalog#EntitySwitch'
+                              children:
+                              - component: '@backstage/plugin-catalog#EntitySwitch.Case'
+                                if:
+                                  isGithubInsightsAvailable: true # ???
+                                children:
+                                - component: '@material-ui/core#Grid'
+                                  item: true
+                                  md: 6
+                                  children:
+                                  - component: '@roadiehq/backstage-plugin-github-insights#EntityGithubInsightsLanguagesCard'
+                                  - component: '@roadiehq/backstage-plugin-github-insights#EntityGithubInsightsReleasesCard'
+                                - component: '@material-ui/core#Grid'
+                                  item: true
+                                  md: 6
+                                  children:
+                                  - component: '@roadiehq/backstage-plugin-github-insights#EntityGithubInsightsReadmeCard'
+                                    maxHeight: 350
+                            - component: '@material-ui/core#Grid'
+                              item: true
+                              md: 4
+                              xs: 12
+                              children:
+                              - component: '@backstage/plugin-catalog#EntityHasSubcomponentsCard'
+                                variant: gridItem
+                          # {/overviewContent}
+                      - component: '@backstage/plugin-catalog#EntityLayout.Route'
+                        title: TODOs
+                        path: /todos
+                        children:
+                        - component: '@backstage/plugin-todo#EntityTodoContent'
+                      - component: '@backstage/plugin-catalog#EntityLayout.Route'
+                        title: Feedback
+                        path: /feedback
+                        children:
+                        - component: '@backstage/plugin-entity-feedback#EntityFeedbackResponseContent'
+                - component: 'react-router#Route'
+                  path: /catalog-import
+                  element:
+                    $component: '@backstage/plugin-permission-react#RequirePermission'
+                    permission: catalogEntityCreatePermission
+                    children:
+                      component: '@backstage/plugin-catalog-import#CatalogImportPage'
+                - component: 'react-router#Route'
+                  path: /create
+                  element:
+                    $component: '@backstage/plugin-scaffolder#ScaffolderPage'
+                    groups:
+                    - title: Recommended
+                      filter:
+                        entity.metadata.tags: recommended
+                    children:
+                    - component: '@backstage/plugin-scaffolder#ScaffolderFieldExtensions'
+                      children:
+                      - component: '@backstage/plugin-scaffolder#LowerCaseValuePickerFieldExtension'
+                    - component: '@backstage/plugin-scaffolder#ScaffolderLayouts'
+                      children:
+                      - component: '@backstage/plugin-scaffolder#TwoColumnLayout'
+                - component: 'react-router#Route'
+                  path: /tech-radar
+                  element:
+                    $component: '@backstage/plugin-tech-radar#TechRadarPage'
+                    width: 1500
+                    height: 800
+                - component: 'react-router#Route'
+                  path: /graphiql
+                  element:
+                    $component: '@backstage/plugin-graphiql#GraphiQLPage'
+                - component: 'react-router#Route'
+                  path: /search
+                  element:
+                    $component: '@backstage/plugin-search#SearchPage'
+                  children:
+                  - $component: 'app#searchPage' # some mechanism that lets you register app components?
+                - component: 'react-router#Route'
+                  path: /settings
+                  element:
+                    $component: '@backstage/plugin-user-settings#UserSettingsPage'
+                  children:
+                  - component: '@backstage/plugin-user-settings#SettingsLayout'
+                    title: Advanced
+                    path: /advanced
+                    children:
+                    - component: '@backstage/plugin-user-settings#AdvancedSettings'
