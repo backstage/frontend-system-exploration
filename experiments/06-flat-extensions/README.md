@@ -180,3 +180,38 @@ rendered. There are no "component" pages or "user" pages, just one entity page
 conditionally renders all content based on the entity. The above TODO content
 would be rendered only for components of type "service", but there is no
 "service component page".
+
+### Collection Indirection
+
+Some form of indirection where extension instances don't reference a parent
+extension directly, but rather a extension collection with a set schema. The
+parent then uses the collection ref to enumerate registered instances and render
+them:
+
+```ts
+export const entityPageContentCollectionRef = createExtensionCollectionRef<>({
+  id: 'some.shit',
+  schema: z.object({
+    title: z.string(),
+    path: z.string(),
+  }),
+});
+
+export const EntityTodoContent = createCollectionExtension({
+  collectionRef: entityPageContentCollectionRef,
+  component: TodoContent,
+  defaultCollectionConfig: {
+    title: 'TODOs',
+    path: '/todo',
+  },
+});
+
+function EntityPage() {
+  const children = useExtensionCollection(entityPageContentCollectionRef);
+
+  return { children };
+}
+```
+
+Whether this is sane is likely going to completely be up to API stability vs
+flexibility and much we want to standardize across plugins.
