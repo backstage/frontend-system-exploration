@@ -146,7 +146,7 @@ app:
         config:
           path: /tech-radar
       use: '@backstage/plugin-tech-radar#TechRadarPage'
-      element:
+      config:
         width: 1500
         height: 800
     graphiql.page:
@@ -155,7 +155,6 @@ app:
         config:
           path: /graphiql
       use: '@backstage/plugin-graphiql#GraphiQLPage'
-      element:
     search.page:
       at:
         point: core.routes
@@ -204,25 +203,14 @@ app:
     entity.page.component.service:
       at:
         point: entity.page.selector
-        config:
-          if:
-            allOf:
-            - isKind: component
-            - isComponentType: service
       use: '@backstage/plugin-catalog#EntityLayout'
     entity.page.component.default:
       at:
         point: entity.page.selector
-        config:
-          if:
-            isKind: component
       use: '@backstage/plugin-catalog#EntityLayout'
     entity.page.user:
       at:
         point: entity.page.selector
-        config:
-          if:
-            isKind: user
       use: '@backstage/plugin-catalog#EntityLayout'
     entity.page.default:
       at: entity.page.selector
