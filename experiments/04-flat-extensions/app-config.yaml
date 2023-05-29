@@ -1,0 +1,400 @@
+app:
+  routes:
+    catalog:
+      createComponent: scaffolder/root
+    scaffolder:
+      registerComponent: catalog-import/importPage
+
+  # Many of these would be provided by default by the default app and plugins, but it's all explicit in this example
+  extensions:
+    # default extensions can be disabled with `false`, e.g. core.signInPage: false
+    core.signInPage:
+      # the declared mount point, we would be able to skip this in this declaration if we don't want to override it
+      # we might also hard-code mount points for all extensions, meaning this flexibility and complexity wouldn't exist
+      at: app/signInPage
+
+      use: '@backstage/core-components#SignInPage'
+      props:
+        provider:
+          id: google
+          title: Google
+          message: Sign In using Google
+          apiRef: googleAuthApiRef # ???
+        title: 'Select a sign-in method'
+        align: center
+    core.alertDisplay:
+      at: app
+      use: '@backstage/core-components#AlertDisplay'
+      config:
+        transientTimeoutMs: 2500
+    core.oauthRequestDialog:
+      at: app
+      use: '@backstage/core-components#AlertDisplay'
+      config:
+        transientTimeoutMs: 2500
+    core.navLayout:
+      at: app
+      use: '@backstage/core-components#SidebarPage'
+
+    # Sidebar
+    core.nav:
+      at: core.navLayout/nav
+      use: '@backstage/core-components#Sidebar'
+      config:
+        logo: assets/logo.png
+        layout: # `type: item` is default, items with nested items are treated as groups
+        - label: Search
+          icon: search
+          to: /search
+          items:
+          - point: search # referenced below as core.nav/search
+        - type: divider
+        - label: Menu
+          icon: menu
+          items:
+          - label: Home
+            icon: home
+            to: /catalog
+          - label: Create...
+            icon: create
+            to: /create
+          - type: divider
+          - type: scroll-wrapper
+            items:
+            - label: Tech Radar
+              icon: map
+              to: /tech-radar
+            - label: GraphiQL
+              icon: graphiql
+              to: /graphiql
+          - type: divider
+          - point: shortcuts
+        - type: space
+        - type: divider
+        - label: Settings
+          icon: avatar # how do we handle more dynamic icons?
+          to: /settings
+          items:
+          - point: settings
+    core.nav.search:
+      at: core.nav/search
+      use: '@backstage/plugin-search#SidebarSearchModal' # customize by replacing
+    core.nav.shortcuts:
+      at: core.nav/shortcuts
+      use: '@backstage/plugin-shortcuts#Shortcuts'
+      config:
+        allowExternalLinks: true
+    core.nav.settings:
+      at: core.nav/settings
+      use: '@backstage/plugin-user-settings#SidebarSettings'
+
+    core.routes:
+      at: core.navLayout/content
+      use: '@backstage/core-components#FlatRoutes'
+    core.pages.index:
+      at:
+        point: core.routes
+        config:
+          path: /
+      use: 'react-router-dom#Navigate'
+      config:
+        to: /catalog
+    catalog.pages.index:
+      at:
+        point: core.routes
+        config:
+          path: /catalog
+      use: '@backstage/plugin-catalog#CatalogIndexPage'
+    catalog.pages.entity:
+      at:
+        point: core.routes
+        config:
+          path: /catalog/:namespace/:kind/:name
+      use: '@backstage/plugin-catalog#CatalogEntityPage'
+    # `page` vs `pages.main` or something is interesting here, most likely the best
+    # solution is to be able to define extension aliases, so that the two would
+    # be synonymous and it would be an error to declare both. That way plugins
+    # can start simple and switch to multiple pages if needed
+    catalogImport.page:
+      at:
+        point: core.routes
+        config:
+          path: /catalog-import
+      use: '@backstage/plugin-catalog-import#CatalogImportPage'
+      # maybe permissions are a top-level concept? or it could be route config
+      permission: catalogEntityCreatePermission
+    scaffolder.page:
+      at:
+        point: core.routes
+        config:
+          path: /create
+      use: '@backstage/plugin-scaffolder#ScaffolderPage'
+      config:
+        groups:
+        - title: Recommended
+          filter:
+            entity.metadata.tags: recommended
+    scaffolder.fields.lowerCaseValuePicker:
+      at: scaffolder.page/fields
+      use: '@backstage/plugin-scaffolder#LowerCaseValuePickerFieldExtension'
+    scaffolder.layout:
+      at: scaffolder.page/layout
+      use: '@backstage/plugin-scaffolder#TwoColumnLayout'
+    tech-radar.page:
+      at:
+        point: core.routes
+        config:
+          path: /tech-radar
+      use: '@backstage/plugin-tech-radar#TechRadarPage'
+      element:
+        width: 1500
+        height: 800
+    graphiql.page:
+      at:
+        point: core.routes
+        config:
+          path: /graphiql
+      use: '@backstage/plugin-graphiql#GraphiQLPage'
+      element:
+    search.page:
+      at:
+        point: core.routes
+        config:
+          path: /search
+      use: '@backstage/plugin-search#SearchPage'
+    search.page.content:
+      at: search.page/content
+      use: 'app#customSearchPage' # circular import, might be that we force separate packages for custom pages?
+    user-settings.page:
+      at:
+        point: core.routes
+        config:
+          path: /settings
+      use: '@backstage/plugin-user-settings#UserSettingsPage'
+    user-settings.page.routes.advanced:
+      at:
+        point: user-settings.page/routes
+        config:
+          title: Advanced
+          path: /advanced
+        use: '@backstage/plugin-user-settings#AdvancedSettings'
+
+    # Entity Pages
+    #
+    # Lots of potential ways to tackle this, in this example there's a root selector that handles all
+    # of the logic for which page to render, with each case being its own extension
+    entity.page.switch:
+      at: catalog.pages.entity
+      use: '@backstage/plugin-catalog#EntitySwitch'
+      config:
+        cases:
+        - if:
+            allOf:
+            - isKind: component
+            - isComponentType: service
+          point: entity.page.component.service
+        - if:
+            isKind: component
+          point: entity.page.component.default
+        - if:
+            isKind: user
+          point: entity.page.user
+        - point: entity.page.default
+
+    entity.page.component.service:
+      at:
+        point: entity.page.selector
+        config:
+          if:
+            allOf:
+            - isKind: component
+            - isComponentType: service
+      use: '@backstage/plugin-catalog#EntityLayout'
+    entity.page.component.default:
+      at:
+        point: entity.page.selector
+        config:
+          if:
+            isKind: component
+      use: '@backstage/plugin-catalog#EntityLayout'
+    entity.page.user:
+      at:
+        point: entity.page.selector
+        config:
+          if:
+            isKind: user
+      use: '@backstage/plugin-catalog#EntityLayout'
+    entity.page.default:
+      at: entity.page.selector
+      use: '@backstage/plugin-catalog#EntityLayout'
+
+    entity.content.overview.common:
+      at:
+        point:
+          - entity.page.component.service
+          - entity.page.component.default
+          - entity.page.default
+        config:
+          title: Overview
+          path: /
+      use: '@backstage/core-components#GridLayout'
+      config:
+        spacing: 3
+        alignItems: stretch
+
+    entity.content.overview.user:
+      at:
+        point:
+          - entity.page.user
+        config:
+          title: Overview
+          path: /
+      use: '@backstage/core-components#GridLayout'
+      config:
+        spacing: 3
+        alignItems: stretch
+
+    entity.card.orphanWarning:
+      at:
+        point:
+          - entity.content.overview.common
+          - entity.content.overview.user
+        config:
+          if: # probably build condition into card instead? In that case conditions can only be configured in TS
+            isOrphan: true
+          xs: 12
+      use: '@backstage/plugin-catalog#EntityOrphanWarning'
+    entity.card.processingErrors:
+      at:
+        point:
+          - entity.content.overview.common
+          - entity.content.overview.user
+        config:
+          xs: 12
+      use: '@backstage/plugin-catalog#EntityProcessingErrorsPanel'
+    entity.card.about:
+      at:
+        point: entity.content.overview.common
+        config:
+          md: 6
+          xs: 12
+      use: '@backstage/plugin-catalog#EntityAboutCard'
+      config:
+        variant: gridItem # this is silly, skipping from now on
+    entity.card.catalogGraph:
+      at:
+        point: entity.content.overview.common
+        config:
+          md: 6
+          xs: 12
+      use: '@backstage/plugin-catalog-graph#EntityCatalogGraphCard'
+      config:
+        height: 400
+    entity.card.pagerDuty:
+      at:
+        point: entity.content.overview.common
+        config:
+          md: 6
+      use: '@backstage/plugin-pager-duty#EntityPagerDutyCard'
+    entity.card.links:
+      at:
+        point: entity.content.overview.common
+        config:
+          md: 4
+          xs: 12
+      use: '@backstage/plugin-catalog#EntityLinksCard'
+    entity.card.labels:
+      at:
+        point: entity.content.overview.common
+        config:
+          md: 4
+          xs: 12
+      use: '@backstage/plugin-catalog#EntityLabelsCard'
+    entity.card.githubInsightsLanguages:
+      at:
+        point: entity.content.overview.common
+        config:
+          md: 6
+          merge: 'github-insights' # some feature like this to join card contents together?
+      use: '@roadiehq/backstage-plugin-github-insights#EntityGithubInsightsLanguagesCard'
+    entity.card.githubInsightsReleases:
+      at:
+        point: entity.content.overview.common
+        config:
+          md: 6
+          merge: 'github-insights'
+      use: '@roadiehq/backstage-plugin-github-insights#EntityGithubInsightsReleasesCard'
+    entity.card.githubInsightsReadme:
+      at:
+        point: entity.content.overview.common
+        config:
+          md: 6
+      use: '@roadiehq/backstage-plugin-github-insights#EntityGithubInsightsReadmeCard'
+      config:
+        maxHeight: 350
+    entity.card.subcomponentsCard:
+      at:
+        point: entity.content.overview.common
+        config:
+          md: 8
+          xs: 12
+      use: '@roadiehq/backstage-plugin-github-insights#EntityHasSubcomponentsCard'
+
+    entity.card.userProfile:
+      at:
+        point: entity.user.overview
+        config:
+          md: 6
+          xs: 12
+      use: '@backstage/plugin-org#EntityUserProfileCard'
+    entity.card.ownership:
+      at:
+        point: entity.user.overview
+        config:
+          md: 6
+          xs: 12
+      use: '@backstage/plugin-org#EntityOwnershipCard'
+    entity.card.likeDislikeRatings:
+      at:
+        point: entity.user.overview
+        config:
+          xs: 12
+      use: '@backstage/plugin-entity-ratings#EntityLikeDislikeRatingsCard'
+
+    entity.content.dependsOnComponents:
+      at:
+        point:
+          - entity.page.component.service
+        config:
+          title: Dependencies
+          path: /dependencies
+      use: '@backstage/core-components#EntityDependsOnComponentsContent' # replaced the card + wrapping with content extension
+    entity.content.codeInsights:
+      at:
+        point:
+          - entity.page.component.service
+        config:
+          title: Code Insights
+          path: /code-insights
+      use: '@roadiehq/backstage-plugin-github-insights#EntityGithubInsightsContent'
+
+    entity.content.todo:
+      at:
+        point:
+          - entity.page.component.service
+          - entity.page.component.default
+          - entity.page.default
+        config:
+          title: TODOs
+          path: /todos
+      use: '@backstage/plugin-todo#EntityTodoContent'
+    entity.content.feedbackResponse:
+      at:
+        point:
+          - entity.page.component.service
+          - entity.page.component.default
+          - entity.page.default
+        config:
+          title: Feedback
+          path: /feedback
+      use: '@backstage/plugin-entity-feedback#EntityFeedbackResponseContent'
