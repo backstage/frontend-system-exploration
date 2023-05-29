@@ -92,3 +92,60 @@ default.
 It's uncertain whether this would scale to deeper structures, for example could
 we use `core.nav/settings/notifications`? What if there can be multiple
 `settings` instances?
+
+### Named Entity Page Switch Cases
+
+By naming the entity page switch pages we could avoid messing around with
+extension points for the entity page switching logic. We'd instead have
+something in its own namespace, like:
+
+```yaml
+entity.page.switch:
+  at: catalog.pages.entity
+  use: '@backstage/plugin-catalog#EntitySwitch'
+  config:
+    pages:
+      serviceComponent:
+        allOf:
+          - isKind: component
+          - isComponentType: service
+      websiteComponent:
+        allOf:
+          - isKind: component
+          - isComponentType: website
+      defaultComponent:
+        isKind: component
+      user:
+        isKind: user
+      default: {}
+
+# The switches could be made available as extension points to configure the layout
+entity.page.switch/serviceComponent:
+  use: '@backstage/plugin-catalog#EntityLayout'
+
+entity.content.todo:
+  at:
+    point: entity.page.switch
+    config:
+      title: TODOs
+      path: /todos
+      pages:
+        serviceComponent: true
+        defaultComponent: true
+        default: true
+  use: '@backstage/plugin-todo#EntityTodoContent'
+```
+
+A big downside of this approach would be that it's very high friction to add
+custom entity pages, since every single extension for the page would need to be
+reconfigured. That's already the case in the current experiment, but it is
+**still** the case here.
+
+```yaml
+entity.content.todo:
+  at:
+    config:
+      pages:
+        serviceComponent: false
+        websiteComponent: true
+```
