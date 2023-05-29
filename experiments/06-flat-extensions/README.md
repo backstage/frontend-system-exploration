@@ -149,3 +149,34 @@ entity.content.todo:
         serviceComponent: false
         websiteComponent: true
 ```
+
+### Remote Entity Page Switching
+
+Perhaps we can get rid of the entity page switch cases altogether? There are
+essentially two pieces of logic solving the same problem in the app, first the
+entity page switch pages contain logic for whether an extension should be
+rendered, and the there's local logic for each extension too using the `is*`
+pattern. This works well in TSX because the hierarchical structure is well
+represented there, but with this much more flat declaration there's less to have
+a logical difference between for example "user" and "component" entity pages.
+What we might do instead is simply have ever individual piece of content be
+responsible for its own rendering conditions, for example:
+
+```yaml
+entity.content.todo:
+  at:
+    point: entity.page.switch
+    config:
+      title: TODOs
+      path: /todos
+      if:
+        kind: 'component'
+        type: 'service'
+  use: '@backstage/plugin-todo#EntityTodoContent'
+```
+
+Each extension instance defines its own conditions for when it should be
+rendered. There are no "component" pages or "user" pages, just one entity page
+conditionally renders all content based on the entity. The above TODO content
+would be rendered only for components of type "service", but there is no
+"service component page".
