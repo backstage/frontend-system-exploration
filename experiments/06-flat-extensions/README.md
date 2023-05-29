@@ -49,3 +49,46 @@ As part of installing a plugin you may get any number of extension points
 provided by default. In a typical app, most of the extensions listed in this
 example would not actually be needed in practice, and instead provided as
 defaults.
+
+## Bonus Experiments
+
+A couple of smaller experiments on top of
+[`app-config.yaml`](./app-config.yaml).
+
+### Extension Point Shorthands
+
+Rather than needing to give every single extension instance its own ID, we could
+allow for shorthand declarations of the type `<parent-id>/<point-name>`. For
+example, the following:
+
+```yaml
+extensions:
+  core.nav.shortcuts:
+    at: core.nav/shortcuts
+    use: '@backstage/plugin-shortcuts#Shortcuts'
+    config:
+      allowExternalLinks: true
+  core.nav.settings:
+    at: core.nav/settings
+    use: '@backstage/plugin-user-settings#SidebarSettings'
+```
+
+Could be written as:
+
+```yaml
+extensions:
+  core.nav/shortcuts:
+    use: '@backstage/plugin-shortcuts#Shortcuts'
+    config:
+      allowExternalLinks: true
+  core.nav/settings:
+    use: '@backstage/plugin-user-settings#SidebarSettings'
+```
+
+The benefit of this is that lets us skip the invention of a new ID. This seems
+to be particularly useful for custom leaf instances that are not provided by
+default.
+
+It's uncertain whether this would scale to deeper structures, for example could
+we use `core.nav/settings/notifications`? What if there can be multiple
+`settings` instances?
