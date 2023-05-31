@@ -1,0 +1,197 @@
+extensions:
+  # Provided by catalog plugin
+  entity.page:
+    at: catalog.pages.entity
+    use: '@backstage/plugin-catalog#EntityLayout'
+
+  # Provided by catalog plugin
+  entity.page.overview:
+    at:
+      point: entity.page/routes
+      config:
+        title: Overview
+        path: /
+    use: '@backstage/core-components#GridLayout'
+    config:
+      spacing: 3
+      alignItems: stretch
+
+  # Provided by catalog plugin
+  entity.card.orphanWarning:
+    at: entity.page.overview/cards
+    use: '@backstage/plugin-catalog#EntityOrphanWarning'
+
+  # Provided by catalog plugin
+  entity.card.processingErrors:
+    at: entity.page.overview/cards
+    use: '@backstage/plugin-catalog#EntityProcessingErrorsPanel'
+
+  # Provided by catalog plugin
+  entity.card.about:
+    at:
+      point: entity.page.overview/cards
+      config:
+        if:
+          not:
+            anyOf:
+              - isKind: user
+              - isKind: group
+    use: '@backstage/plugin-catalog#EntityAboutCard'
+
+  # Provided by catalog-graph plugin
+  entity.card.catalogGraph:
+    at:
+      point: entity.page.overview/cards
+      config:
+        if:
+          anyOf:
+            - isKind: component
+            - isKind: api
+    use: '@backstage/plugin-catalog-graph#EntityCatalogGraphCard'
+
+  # Provided by pager-duty plugin
+  entity.card.pagerDuty:
+    at:
+      point: entity.page.overview/cards
+      config:
+        if:
+          not:
+            anyOf:
+              - isKind: user
+              - isKind: group
+    use: '@backstage/plugin-pager-duty#EntityPagerDutyCard'
+
+  # Provided by catalog plugin
+  entity.card.links:
+    at:
+      point: entity.page.overview/cards
+      config:
+        if:
+          not:
+            anyOf:
+              - isKind: user
+              - isKind: group
+    use: '@backstage/plugin-catalog#EntityLinksCard'
+
+  entity.card.labels:
+    at:
+      point: entity.page.overview/cards
+      config:
+        if:
+          not:
+            anyOf:
+              - isKind: user
+              - isKind: group
+    use: '@backstage/plugin-catalog#EntityLabelsCard'
+
+  entity.card.githubInsightsLanguages:
+    at:
+      point: entity.page.overview/cards
+      config:
+        if:
+          isKind: component
+    use: '@roadiehq/backstage-plugin-github-insights#EntityGithubInsightsLanguagesCard'
+
+  entity.card.githubInsightsReleases:
+    at:
+      point: entity.page.overview/cards
+      config:
+        if:
+          isKind: component
+    use: '@roadiehq/backstage-plugin-github-insights#EntityGithubInsightsReleasesCard'
+
+  entity.card.githubInsightsReadme:
+    at:
+      point: entity.page.overview/cards
+      config:
+        if:
+          isKind: component
+    use: '@roadiehq/backstage-plugin-github-insights#EntityGithubInsightsReadmeCard'
+    config:
+      maxHeight: 350
+
+  entity.card.subcomponentsCard:
+    at:
+      point: entity.page.overview/cards
+      config:
+        if:
+          isKind: component
+    use: '@roadiehq/backstage-plugin-github-insights#EntityHasSubcomponentsCard'
+
+  entity.card.userProfile:
+    at:
+      point: entity.page.overview/cards
+      config:
+        if:
+          anyOf:
+            - isKind: user
+            - isKind: group
+    use: '@backstage/plugin-org#EntityUserProfileCard'
+
+  entity.card.ownership:
+    at:
+      point: entity.page.overview/cards
+      config:
+        if:
+          anyOf:
+            - isKind: user
+            - isKind: group
+    use: '@backstage/plugin-org#EntityOwnershipCard'
+
+  entity.card.likeDislikeRatings:
+    at:
+      point: entity.page.overview/cards
+      config:
+        if:
+          anyOf:
+            - isKind: user
+            - isKind: group
+    use: '@backstage/plugin-entity-ratings#EntityLikeDislikeRatingsCard'
+
+  entity.content.dependsOnComponents:
+    at:
+      point: entity.page/routes
+      config:
+        title: Dependencies
+        path: /dependencies
+        if:
+          isKind: component
+          isComponentType: service
+    use: '@backstage/core-components#EntityDependsOnComponentsContent'
+
+  entity.content.codeInsights:
+    at:
+      point: entity.page/routes
+      config:
+        title: Code Insights
+        path: /code-insights
+        if:
+          isKind: component
+          isComponentType: service
+    use: '@roadiehq/backstage-plugin-github-insights#EntityGithubInsightsContent'
+
+  entity.content.todo:
+    at:
+      point: entity.page/routes
+      config:
+        title: TODOs
+        path: /todos
+        if:
+          not:
+            anyOf:
+              - isKind: user
+              - isKind: group
+    use: '@backstage/plugin-todo#EntityTodoContent'
+
+  entity.content.feedbackResponse:
+    at:
+      point: entity.page/routes
+      config:
+        title: Feedback
+        path: /feedback
+        if:
+          not:
+            anyOf:
+              - isKind: user
+              - isKind: group
+    use: '@backstage/plugin-entity-feedback#EntityFeedbackResponseContent'
