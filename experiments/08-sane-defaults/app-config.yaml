@@ -1,0 +1,137 @@
+# Assumptions:
+#
+# - Only packages that are listed in app-config will actually be used, no package.json detection
+
+
+# Advent of Code Challenge: Configure the following entity overview page:
+#
+# Overview:
+#  - AboutCard
+#  - UserProfileCard
+#  - LinksCard, show everywhere rather than only non-org entities
+#  - PagerDuty card, configure to disable paging action
+#  - GitHub Insights Readme
+
+# extension packages installed separately
+app1:
+  features:
+    - '@backstage/plugin-catalog'
+    - '@backstage/plugin-org'
+    - '@backstage/plugin-pager-duty'
+    - '@roadiehq/backstage-plugin-github-insights'
+  extensions:
+    entity.card.about: true
+    entity.card.userProfile: true
+    entity.card.links:
+      at:
+        config:
+          if: true
+    entity.card.pagerDuty:
+      config:
+        disablePagingAction: true
+    entity.card.githubInsightsReadme: true
+    entity.card.githubInsightsLanguages: false
+    entity.card.githubInsightsReleases: false
+
+# extensions installed separately, switch extensions to list, everything from packages
+# installed by default, including cards. Unwanted extensions are disabled in plugin config
+app2:
+  features:
+    - '@backstage/plugin-catalog'
+    - '@backstage/plugin-org'
+    - '@backstage/plugin-pager-duty'
+    - '@roadiehq/backstage-plugin-github-insights':
+        disable:
+        - entity.card.githubInsightsLanguages
+        - entity.card.githubInsightsReleases
+  extensions:
+    - entity.card.about
+    - entity.card.userProfile
+    - id: entity.card.links
+      at:
+        config:
+          if: true
+    - id: entity.card.pagerDuty
+      config:
+        disablePagingAction: true
+    # This is not needed since the ordering from the features is maintained unless explicitly changed here
+    # - entity.card.githubInsightsReadme
+
+# Remove separate `features` key and make package names part of the syntax for listing extensions.
+# More brief but looks really messy
+app3:
+  extensions:
+    - '@backstage/plugin-catalog#entity.card.about'
+    - '@backstage/plugin-org#entity.card.userProfile'
+    - id: '@backstage/plugin-catalog#entity.card.links'
+      at:
+        config:
+          if: true
+    - id: '@backstage/plugin-pager-duty!entity.card.pagerDuty'
+      config:
+        disablePagingAction: true
+    - id: '@roadiehq/backstage-plugin-github-insights'
+      disable:
+      - entity.card.githubInsightsLanguages
+      - entity.card.githubInsightsReleases
+    # - id: '@backstage/plugin-gitlab'
+    #   config:
+    #     pullRequestStrategy: 'rebase'
+    # - id: '@backstage/plugin-gitlab#entity.cards.gitlabMergeRequests'
+    #   at:
+    #     config:
+    #       md: 6
+    #   config:
+    #     richPreview: true
+
+# Ignore the assumption that we have to list package, let that happen through magic instead. We could allow for
+# an explicit list here, detection at build-time, an list in code, or w/e other way of listing packages we can come up with.
+# We also do NOT install cards or other things were ordering is important by default. Plugins can declare these
+# extensions and their default config, but they will not show up unless explicitly listed.
+app4:
+  packages: 'all' # ✨
+  extensions:
+    # These are not installed automatically and need to be explicitly listed
+    - entity.card.about
+    - entity.card.userProfile
+    - id: entity.card.links
+      at:
+        config:
+          if: true
+    - id: entity.card.pagerDuty
+      config:
+        disablePagingAction: true
+    - entity.card.githubInsightsReadme
+
+# Switched over extension list to use an object again so that we left-align all IDs, making it easier to glance
+app5:
+  packages: 'all' # ✨
+  extensions:
+    # These are not installed automatically and need to be explicitly listed
+    entity.card.about: {}
+    entity.card.userProfile: {}
+    entity.card.links:
+      at:
+        config:
+          if: true
+    entity.card.pagerDuty:
+      config:
+        disablePagingAction: true
+    entity.card.githubInsightsReadme: {}
+
+# Back to array, but make config nest under the id as an object key itself, keeping everything left-aligned
+# and avoiding the need for an awkward object value placeholder
+app6:
+  packages: 'all' # ✨
+  extensions:
+    # These are not installed automatically and need to be explicitly listed
+    - entity.card.about
+    - entity.card.userProfile
+    - entity.card.links:
+        at:
+          config:
+            if: true
+    - entity.card.pagerDuty:
+        config:
+          disablePagingAction: true
+    - entity.card.githubInsightsReadme
