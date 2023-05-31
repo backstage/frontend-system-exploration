@@ -1,0 +1,360 @@
+app:
+  routes:
+    catalog:
+      createComponent: scaffolder/root
+    scaffolder:
+      registerComponent: catalog-import/importPage
+
+  extensions:
+    # Entity Pages
+
+    # Not defined by user unless the underlying page layout is switched out.
+    entity.page:
+      at: catalog.pages.entity
+      use: '@backstage/plugin-catalog#EntityLayout'
+
+    # Not defined by user unless the underlying overview page layout is switched out.
+    entity.page.overview:
+      at:
+        point: entity.page/routes
+        config:
+          title: Overview
+          path: /
+      use: '@backstage/core-components#GridLayout'
+      config:
+        spacing: 3
+        alignItems: stretch
+
+    # In contrast to experiment 06, entity page content is defined as a flat structure with filters
+    # only applied to each individual piece of content. There's no concept of a "service" or "user" entity page.
+    entity.card.orphanWarning:
+      at: entity.page.overview/cards
+      use: '@backstage/plugin-catalog#EntityOrphanWarning'
+
+    entity.card.processingErrors:
+      at: entity.page.overview/cards
+      use: '@backstage/plugin-catalog#EntityProcessingErrorsPanel'
+
+    entity.card.about:
+      at:
+        point: entity.page.overview/cards
+        config:
+          if:
+            not:
+              anyOf:
+                - isKind: user
+                - isKind: group
+      use: '@backstage/plugin-catalog#EntityAboutCard'
+
+    entity.card.catalogGraph:
+      at:
+        point: entity.page.overview/cards
+        config:
+          if:
+            anyOf:
+              - isKind: component
+              - isKind: api
+      use: '@backstage/plugin-catalog-graph#EntityCatalogGraphCard'
+
+    entity.card.pagerDuty:
+      at:
+        point: entity.page.overview/cards
+        config:
+          if:
+            not:
+              anyOf:
+                - isKind: user
+                - isKind: group
+      use: '@backstage/plugin-pager-duty#EntityPagerDutyCard'
+
+    entity.card.links:
+      at:
+        point: entity.page.overview/cards
+        config:
+          if:
+            not:
+              anyOf:
+                - isKind: user
+                - isKind: group
+      use: '@backstage/plugin-catalog#EntityLinksCard'
+
+    entity.card.labels:
+      at:
+        point: entity.page.overview/cards
+        config:
+          if:
+            not:
+              anyOf:
+                - isKind: user
+                - isKind: group
+      use: '@backstage/plugin-catalog#EntityLabelsCard'
+
+    entity.card.githubInsightsLanguages:
+      at:
+        point: entity.page.overview/cards
+        config:
+          if:
+            isKind: component
+      use: '@roadiehq/backstage-plugin-github-insights#EntityGithubInsightsLanguagesCard'
+
+    entity.card.githubInsightsReleases:
+      at:
+        point: entity.page.overview/cards
+        config:
+          if:
+            isKind: component
+      use: '@roadiehq/backstage-plugin-github-insights#EntityGithubInsightsReleasesCard'
+
+    entity.card.githubInsightsReadme:
+      at:
+        point: entity.page.overview/cards
+        config:
+          if:
+            isKind: component
+      use: '@roadiehq/backstage-plugin-github-insights#EntityGithubInsightsReadmeCard'
+      config:
+        maxHeight: 350
+
+    entity.card.subcomponentsCard:
+      at:
+        point: entity.page.overview/cards
+        config:
+          if:
+            isKind: component
+      use: '@roadiehq/backstage-plugin-github-insights#EntityHasSubcomponentsCard'
+
+    entity.card.userProfile:
+      at:
+        point: entity.page.overview/cards
+        config:
+          if:
+            anyOf:
+              - isKind: user
+              - isKind: group
+      use: '@backstage/plugin-org#EntityUserProfileCard'
+
+    entity.card.ownership:
+      at:
+        point: entity.page.overview/cards
+        config:
+          if:
+            anyOf:
+              - isKind: user
+              - isKind: group
+      use: '@backstage/plugin-org#EntityOwnershipCard'
+
+    entity.card.likeDislikeRatings:
+      at:
+        point: entity.page.overview/cards
+        config:
+          if:
+            anyOf:
+              - isKind: user
+              - isKind: group
+      use: '@backstage/plugin-entity-ratings#EntityLikeDislikeRatingsCard'
+
+    entity.content.dependsOnComponents:
+      at:
+        point: entity.page/routes
+        config:
+          title: Dependencies
+          path: /dependencies
+          if:
+            isKind: component
+            isComponentType: service
+      use: '@backstage/core-components#EntityDependsOnComponentsContent'
+
+    entity.content.codeInsights:
+      at:
+        point: entity.page/routes
+        config:
+          title: Code Insights
+          path: /code-insights
+          if:
+            isKind: component
+            isComponentType: service
+      use: '@roadiehq/backstage-plugin-github-insights#EntityGithubInsightsContent'
+
+    entity.content.todo:
+      at:
+        point: entity.page/routes
+        config:
+          title: TODOs
+          path: /todos
+          if:
+            not:
+              anyOf:
+                - isKind: user
+                - isKind: group
+      use: '@backstage/plugin-todo#EntityTodoContent'
+
+    entity.content.feedbackResponse:
+      at:
+        point: entity.page/routes
+        config:
+          title: Feedback
+          path: /feedback
+          if:
+            not:
+              anyOf:
+                - isKind: user
+                - isKind: group
+      use: '@backstage/plugin-entity-feedback#EntityFeedbackResponseContent'
+
+    # Rest of the app starts here, included for completeness, it's the same as experiment 06
+
+    core.signInPage:
+      at: app/signInPage
+
+      use: '@backstage/core-components#SignInPage'
+      props:
+        provider:
+          id: google
+          title: Google
+          message: Sign In using Google
+          apiRef: googleAuthApiRef # ???
+        title: 'Select a sign-in method'
+        align: center
+    core.alertDisplay:
+      at: app
+      use: '@backstage/core-components#AlertDisplay'
+      config:
+        transientTimeoutMs: 2500
+    core.oauthRequestDialog:
+      at: app
+      use: '@backstage/core-components#AlertDisplay'
+      config:
+        transientTimeoutMs: 2500
+    core.navLayout:
+      at: app
+      use: '@backstage/core-components#SidebarPage'
+
+    # Sidebar
+    core.nav:
+      at: core.navLayout/nav
+      use: '@backstage/core-components#Sidebar'
+      config:
+        logo: assets/logo.png
+        layout:
+        - label: Search
+          icon: search
+          to: /search
+          items:
+          - point: search
+        - type: divider
+        - label: Menu
+          icon: menu
+          items:
+          - label: Home
+            icon: home
+            to: /catalog
+          - label: Create...
+            icon: create
+            to: /create
+          - type: divider
+          - type: scroll-wrapper
+            items:
+            - label: Tech Radar
+              icon: map
+              to: /tech-radar
+            - label: GraphiQL
+              icon: graphiql
+              to: /graphiql
+          - type: divider
+          - point: shortcuts
+        - type: space
+        - type: divider
+        - label: Settings
+          icon: avatar
+          to: /settings
+          items:
+          - point: settings
+    core.nav/search: '@backstage/plugin-search#SidebarSearchModal'
+    core.nav/shortcuts:
+      use: '@backstage/plugin-shortcuts#Shortcuts'
+      config:
+        allowExternalLinks: true
+    core.nav/settings: '@backstage/plugin-user-settings#SidebarSettings'
+
+    core.routes:
+      at: core.navLayout/content
+      use: '@backstage/core-components#FlatRoutes'
+    core.pages.index:
+      at:
+        point: core.routes
+        config:
+          path: /
+      use: 'react-router-dom#Navigate'
+      config:
+        to: /catalog
+    catalog.pages.index:
+      at:
+        point: core.routes
+        config:
+          path: /catalog
+      use: '@backstage/plugin-catalog#CatalogIndexPage'
+    catalog.pages.entity:
+      at:
+        point: core.routes
+        config:
+          path: /catalog/:namespace/:kind/:name
+      use: '@backstage/plugin-catalog#CatalogEntityPage'
+    catalogImport.page:
+      at:
+        point: core.routes
+        config:
+          path: /catalog-import
+      use: '@backstage/plugin-catalog-import#CatalogImportPage'
+      permission: catalogEntityCreatePermission
+    scaffolder.page:
+      at:
+        point: core.routes
+        config:
+          path: /create
+      use: '@backstage/plugin-scaffolder#ScaffolderPage'
+      config:
+        groups:
+        - title: Recommended
+          filter:
+            entity.metadata.tags: recommended
+    scaffolder.page/fields:
+      use: '@backstage/plugin-scaffolder#LowerCaseValuePickerFieldExtension'
+    scaffolder/layout:
+      use: '@backstage/plugin-scaffolder#TwoColumnLayout'
+    tech-radar.page:
+      at:
+        point: core.routes
+        config:
+          path: /tech-radar
+      use: '@backstage/plugin-tech-radar#TechRadarPage'
+      config:
+        width: 1500
+        height: 800
+    graphiql.page:
+      at:
+        point: core.routes
+        config:
+          path: /graphiql
+      use: '@backstage/plugin-graphiql#GraphiQLPage'
+    search.page:
+      at:
+        point: core.routes
+        config:
+          path: /search
+      use: '@backstage/plugin-search#SearchPage'
+    search.page.content:
+      at: search.page/content
+      use: 'app#customSearchPage'
+    user-settings.page:
+      at:
+        point: core.routes
+        config:
+          path: /settings
+      use: '@backstage/plugin-user-settings#UserSettingsPage'
+    user-settings.page.routes.advanced:
+      at:
+        point: user-settings.page/routes
+        config:
+          title: Advanced
+          path: /advanced
+        use: '@backstage/plugin-user-settings#AdvancedSettings'
