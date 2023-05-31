@@ -14,7 +14,7 @@ app:
       at: app/signInPage
 
       use: '@backstage/core-components#SignInPage'
-      props:
+      config:
         provider:
           id: google
           title: Google
