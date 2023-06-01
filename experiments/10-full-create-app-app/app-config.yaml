@@ -1,0 +1,103 @@
+
+app:
+  packages: 'all'
+
+  routes:
+    catalog:
+      createComponent: scaffolder/root
+      viewTechDoc: techdocs/docRoot
+      createFromTemplate: scaffolder/selectedTemplate
+    apiDocs:
+      registerApi: catalog-import/importPage
+    scaffolder:
+      registerComponent: catalog-import/importPage
+      viewTechDocs: techdocs/docRoot
+    org:
+      catalogIndex: catalog/catalogIndex
+
+  extensions:
+  - core.nav:
+      config:
+        layout:
+        - label: Search
+          icon: search
+          to: /search
+          items:
+          - point: search
+        - type: divider
+        - label: Menu
+          icon: menu
+          items:
+          - label: Home
+            icon: home
+            to: /catalog
+          - label: APIs
+            icon: extension
+            to: /api-docs
+          - label: Docs
+            icon: library-books
+            to: /docs
+          - label: Create...
+            icon: create
+            to: /create
+          - type: divider
+          - type: scroll-wrapper
+            items:
+            - label: Tech Radar
+              icon: map
+              to: /tech-radar
+        - type: space
+        - type: divider
+        - label: Settings
+          icon: avatar
+          to: /settings
+          items:
+          - point: settings
+  - core.nav/search: '@backstage/plugin-search#SidebarSearchModal'
+  - core.nav/settings: '@backstage/plugin-user-settings#SidebarSettings'
+
+  - core.router/routes:
+      use: '@backstage/core-app-api#Redirect'
+      mountConfig:
+        path: /
+      config:
+        to: /catalog
+  - techdocs.page/addons: '@backstage/plugin-techdocs-module-addons-contrib#ReportIssue'
+  - techdocs.content/addons: '@backstage/plugin-techdocs-module-addons-contrib#ReportIssue' # is this really needed?
+  - search.page/content: app#customSearchPage
+
+  - entity.card.orphanWarning
+  - entity.card.processingErrors
+  - entity.card.about
+  - entity.card.catalogGraph
+  - entity.card.links
+  - entity.card.hasSubcomponents
+  - entity.card.providingComponents
+  - entity.card.hasComponents
+  - entity.card.hasApis
+  - entity.card.hasResources
+  - entity.card.userProfile
+  - entity.card.groupProfile
+  - entity.card.ownership
+  - entity.card.membersList
+
+  - entity.content.cicd:
+      mountConfig:
+        path: /ci-cd
+        title: CI/CD
+        switched: true # some form of facility to allow for one or maybe multiple pieces of content to be available
+  - entity.content.cicd/content: '@backstage/plugin-github-actions#EntityGithubActionsContent'
+  - entity.content.cicd/fallback:
+      use: '@backstage/plugin-catalog#ContentEmptyState'
+      config:
+        title: No CI/CD available for this entity
+        missing: info
+        description: >
+          You need to add an annotation to your component if you want to enable CI/CD for it.
+          You can read more about annotations in Backstage by clicking the button below.
+
+  - entity.content.apiDefinition
+  - entity.content.componentApiRelations
+  - entity.content.dependencies
+  - entity.content.techDocs
+  - entity.content.systemDiagram
