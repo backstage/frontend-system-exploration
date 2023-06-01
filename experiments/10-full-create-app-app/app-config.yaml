@@ -5,8 +5,8 @@ app:
   routes:
     catalog:
       createComponent: scaffolder/root
-      viewTechDoc: techdocs/docRoot,
-      createFromTemplate: scaffolder/selectedTemplate,
+      viewTechDoc: techdocs/docRoot
+      createFromTemplate: scaffolder/selectedTemplate
     apiDocs:
       registerApi: catalog-import/importPage
     scaffolder:
